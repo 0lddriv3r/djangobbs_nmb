@@ -1,0 +1,122 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>流浪福州 （￣へ￣）</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/i.css' %}"/>
+    <link rel="icon" href="{% static 'img/favicon.ico' %}" type="image/x-icon"/>
+    <link rel="shortcut icon" href="{% static 'img/favicon.ico' %}" type="image/x-icon"/>
+</head>
+<!-- 容器 -->
+<body class="container">
+
+<!-- 容器 > 左边 -->
+{% block left %}
+{% endblock %}
+
+<!-- 容器 > 右边 -->
+<div class="right">
+    <!-- 右边 > 容器 -->
+    <div class="r_container">
+        <!-- 右边 > 左边 -->
+        <div class="r_left">
+            <!-- 左边 > 发布 -->
+            {% block publish %}
+            {% endblock %}
+            <!-- 左边 > 线程 -->
+            {% block threads %}
+            {% endblock %}
+        </div>
+        <!-- 右边 > 侧边 -->
+        {% block siderbar %}
+        {% endblock %}
+    </div>
+</div>
+</body>
+<script src="{% static 'js/jquery-3.1.1.min.js' %}"></script>
+<script>
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+
+    $.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+            var csrftoken = getCookie('csrftoken');
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
+
+    function submitform() {
+        $(".imgkeyresult .imgkeyt").text("搜索中...");
+        var fs = document.getElementById('imgkeyform');
+        var fd = new FormData(fs);
+        $.ajax({
+            url: "/searchphoto/",
+            type: "post",
+            data: fd,
+            contentType: false,
+            processData: false,
+            dataType: 'json',
+            success: function (data) {
+                $(".imgkeyresult .imgkeyt").text("搜索到一条结果：");
+                $(".imgkeyresult .imgkeycontent").text(data.res);
+                fs.reset();
+            }
+        })
+    }
+</script>
+<script>
+    $(document).ready(function () {
+        $('.left ul').find('li').click(function () {
+            $(this).addClass('active').siblings('li').removeClass('active');
+        });
+        $(".unload #join").click(function () {
+            $(".register").css("display", "none");
+            $(".login").css("display", "block");
+        });
+        $(".unload #logn").click(function () {
+            $(".sidebar .register").css("display", "block");
+            $(".sidebar .login").css("display", "none");
+        });
+        $(".pselect").click(function () {
+            $(".publish").css("display", "block");
+            $(".publish.hiddenpublish").css("display", "none");
+        });
+        $(".phselect").click(function () {
+            $(".publish").css("display", "none");
+            $(".publish.hiddenpublish").css("display", "block");
+        });
+    });
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?0ae9741cd4982458922dc654cf3201da";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

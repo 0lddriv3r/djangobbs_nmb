@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+
+{% block left %}
+    <div class="left">
+        <ul>
+            {% for category in categorys %}
+                {% if category.nickname == categoryactive %}
+                    <li class="active"><a href="/category/{{ category.nickname }}">{{ category.name }}</a></li>
+                {% else %}
+                    <li><a href="/category/{{ category.nickname }}">{{ category.name }}</a></li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="mobilenav">
+        <ul>
+            {% for category in categorys %}
+                {% if category.nickname == categoryactive %}
+                    <li class="active"><a href="/category/{{ category.nickname }}">{{ category.name }}</a></li>
+                {% else %}
+                    <li><a href="/category/{{ category.nickname }}">{{ category.name }}</a></li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}
+
+{% block publish %}
+    <div class="publish hiddenpublish">
+        <div class="return"><a href="javascript:history.go(-1);">[ 返回 ]</a></div>
+        {% if nexttopicid != 0 %}
+            <div class="nexttopic"><a href="/category/{{ categoryactive }}/thread/{{ nexttopicid }}/next">[ 向下 ]</a></div>
+        {% endif %}
+        {% if authorid %}
+            <a class="pselect" href="javascript:void(0);">[ 回复 ]</a>
+        {% endif %}
+    </div>
+    {% if authorid %}
+        {% if errmsg_center %}
+            <span class="errmsg">{{ errmsg_center }}</span><br/><br/>
+        {% endif %}
+        <div class="publish">
+            <a class="phselect" href="javascript:void(0);">[ 隐藏 ]</a>
+            <form action="/comment/" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <ul>
+                    <li>
+                        <span>回复：</span><font> No.{{ thread.id }}</font>
+                        <input type="hidden" name="threadid" value="{{ thread.id }}"/>
+                    </li>
+                    <li>
+                        <span>标题：</span>
+                        <input type="text" name="title" maxlength="50" placeholder="留空"/>
+                    </li>
+                    <li>
+                        <span class="content">内容：</span>
+                        <textarea name="body" maxlength="10000" placeholder="请输入内容"
+                                  required="required"></textarea>
+                    </li>
+                    <li>
+                        <span>图片：</span>
+                        <input name="attachment" accept="image/*" type="file" value="上传图片"/>
+                    </li>
+                    <li>
+                        <span>音乐：</span>
+                        <input name="musicurl" type="text" placeholder="留空"/>
+                    </li>
+                    <li>
+                        <span>发布：</span>
+                        <input type="hidden" name="authorid" value="{{ authorid }}"/>
+                        <input type="hidden" name="categoryactive" value="{{ categoryactive }}"/>
+                        <input class="submitbtn" type="submit" value="发布线程"/>
+                    </li>
+                </ul>
+            </form>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block threads %}
+        <div class="item">
+            <div style="border: none;" class="item_header">
+                <div class="avator">
+                    <img src="{{ thread.author.avator }}"/>
+                </div>
+                <div class="item_right">
+                    <div class="item_title"><a
+                            href="javascript:exit(0);">{{ thread.title }}</a>
+                    </div>
+                    <div class="item_author"><span>{{ thread.author.username }} | {{ thread.category.name }}</span>&nbsp;&nbsp;&nbsp;</div>
+                    <div class="item_publish"><span>{{ thread.createtime }}</span></div>
+                </div>
+            </div>
+            {% if thread.musicurl %}
+                <div class="item_attachment">
+                    <audio controls="controls" loop="loop">
+                        <source src="{{ thread.musicurl }}" type="audio/mp3" preload="none"/>
+                        <span>Your browser does not support this audio format.</span>
+                    </audio>
+                </div>
+            {% endif %}
+            <div class="item_body">
+                <pre>{{ thread.body }}</pre>
+            </div>
+            {% if thread.attachment %}
+                <div class="item_attachment">
+                    <ul>
+                        <li><img src="{{ thread.attachment }}"/></li>
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+    {% if comments %}
+        <div class="comment"><span>评论列表：</span></div>
+    {% else %}
+        <div class="comment"><span>沙发还在，还不快抢？</span></div>
+    {% endif %}
+    {% for comment in comments %}
+        <div class="item">
+            <!-- 线程 > 头像 -->
+            <div style="border: none;" class="item_header">
+                <div class="avator">
+                    <img src="{{ comment.author.avator }}"/>
+                </div>
+                <!-- 线程 > 右边 -->
+                <div class="item_right">
+                    <div class="item_title"><a
+                            href="javascript:exit(0);">{{ comment.title }}</a>
+                    </div>
+                    <div class="item_author"><span>{{ comment.author.username }}</span>&nbsp;&nbsp;&nbsp;</div>
+                    <div class="item_publish"><span>{{ comment.createtime }}</span></div>
+                </div>
+                <div class="item_floor">
+                    <span># {{ comment.floor }}</span>
+                </div>
+            </div>
+            {% if comment.musicurl %}
+                <div class="item_attachment">
+                    <audio controls="controls" loop="loop">
+                        <source src="{{ comment.musicurl }}" type="audio/mp3" preload="none"/>
+                        <span>Your browser does not support this audio format.</span>
+                    </audio>
+                </div>
+            {% endif %}
+            <div class="item_body">
+                <pre>{{ comment.body }}</pre>
+            </div>
+            {% if comment.attachment %}
+                <div class="item_attachment">
+                    <ul>
+                        <li><img src="{{ comment.attachment }}"/></li>
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+    {% if comments.has_previous %}
+        <div class="pagebtn">
+            {% if comments.has_previous %}
+                <button><a
+                        href="/category/{{ categoryactive }}/thread/{{ thread.id }}/page/{{ comments.previous_page_number }}">上一页</a>
+                </button>
+            {% endif %}
+            {% if comments.has_next %}
+                <button><a
+                        href="/category/{{ categoryactive }}/thread/{{ thread.id }}/page/{{ comments.next_page_number }}">下一页</a>
+                </button>
+            {% endif %}
+        </div>
+    {% else %}
+        {% if comments.paginator.num_pages > 1 %}
+            <div class="pagebtn">
+                <button><a href="/category/{{ categoryactive }}/thread/{{ thread.id }}/page/2">下一页</a></button>
+            </div>
+        {% endif %}
+    {% endif %}
+{% endblock %}
+
+{% block siderbar %}
+    <div class="sidebar">
+        {% if authorid %}
+            <div class="welcome">
+                <span>欢迎您！{{ username }}</span><br/>
+                <div class="joinandlogin"><a href="/logout/">退出</a></div>
+            </div>
+        {% else %}
+            {% if errmsg_sider %}
+                <span class="errmsg">{{ errmsg_sider }}</span>
+            {% endif %}
+            <div class="login">
+                <div>
+                    <form action="/register/" method="post">
+                        {% csrf_token %}
+                        <ul>
+                            <li><input class="l1" type="text" maxlength="14" name="username" placeholder="请输入用户名"
+                                       required="required">
+                            </li>
+                            <li><input class="l1" type="email" name="email" placeholder="请输入邮箱"
+                                       required="required">
+                            </li>
+                            <li><input class="l1" type="password" maxlength="14" name="password" placeholder="请输入密码"
+                                       required="required">
+                            </li>
+                            <li><input class="l2" type="submit" value="注册 （￣▽￣） "></li>
+                        </ul>
+                    </form>
+                </div>
+                <div class="unload">
+                    <span>已有账号？</span><br/>
+                    <button id="logn" class="joinandlogin">登录 (ノ≧∇≦)ノ</button>
+                </div>
+            </div>
+
+            <div class="register">
+                <div>
+                    <form action="/login/" method="post">
+                        {% csrf_token %}
+                        <ul>
+                            <li><input class="l1" type="text" maxlength="14" name="username" placeholder="请输入用户名"
+                                       required="required">
+                            </li>
+                            <li><input class="l1" type="password" maxlength="14" name="password" placeholder="请输入密码"
+                                       required="required">
+                            </li>
+                            <li><input class="l2" type="submit" value="登录 （￣▽￣） "></li>
+                        </ul>
+                    </form>
+                </div>
+                <div class="unload">
+                    <span>还没有注册？</span><br/>
+                    <button id="join" class="joinandlogin">加入我们 (ノ≧∇≦)ノ</button>
+                </div>
+            </div>
+        {% endif %}
+        <br/><span>本站建于2019/4/4<br/><br/>有以下规则：<br/>别搞破坏<br/>别发黄图<br/>勿聊政治<br/><br/>提示：<br/>发表主题可以只填写内容<br/>头像默认采用gravatar<br/>发布文章会由于缓存而延迟几秒</span>
+        <div class="search">
+            <span>试一下搜索功能？搜10条</span><br/>
+            <form action="/search/" method="post">
+                {% csrf_token %}
+                <ul>
+                    <li>
+                        <input class="l1" type="text" name="keyword" placeholder="请输入关键字" required="required"/>
+                    </li>
+                </ul>
+            </form>
+        </div>
+        {% if errmsg_keyword %}
+            <span>{{ errmsg_keyword }}</span>
+        {% endif %}
+        <div class="search photo">
+            <span>试一下搜图功能？</span><br/>
+            <form action="" method="post" id="imgkeyform" enctype="multipart/form-data">
+                {% csrf_token %}
+                <ul>
+                    <li>
+                        <input class="l1" type="file" accept="image/*" name="imgkey" onchange="submitform()"/>
+                    </li>
+                </ul>
+            </form>
+        </div>
+        <div class="imgkeyresult">
+            <span class="imgkeyt"></span><br/><br/>
+            <span style="word-break: break-all;" class="imgkeycontent"></span>
+        </div>
+    </div>
+{% endblock %}
